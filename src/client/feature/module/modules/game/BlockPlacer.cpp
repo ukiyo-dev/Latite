@@ -105,12 +105,22 @@ void BlockPlacer::onEnable() {
 	wasPlacing = false;
 	forcePlace = false;
 	forcePlaceImmediate = false;
+	placeHistory.clear();
+	pendingPlace = false;
+	pendingSlot = -1;
+	pendingCount = 0;
+	pendingAt = {};
 }
 
 void BlockPlacer::onDisable() {
 	wasPlacing = false;
 	forcePlace = false;
 	forcePlaceImmediate = false;
+	placeHistory.clear();
+	pendingPlace = false;
+	pendingSlot = -1;
+	pendingCount = 0;
+	pendingAt = {};
 }
 
 void BlockPlacer::onTick(Event&) {
@@ -142,6 +152,17 @@ void BlockPlacer::onTick(Event&) {
 	}
 
 	auto inv = lp->supplies;
+	if (pendingPlace) {
+		auto stack = inv->inventory->getItem(pendingSlot);
+		if (!stack || !stack->valid || inv->selectedSlot != pendingSlot) {
+			pendingPlace = false;
+		} else if (stack->itemCount < pendingCount) {
+			placeHistory.push_back(now);
+			pendingPlace = false;
+		} else if (now - pendingAt > std::chrono::milliseconds(500)) {
+			pendingPlace = false;
+		}
+	}
 	auto selected = inv->inventory->getItem(inv->selectedSlot);
 	if (!isPreferredBlock(selected)) {
 		wasPlacing = false;
@@ -160,8 +181,19 @@ void BlockPlacer::onTick(Event&) {
 	float cpsVal = std::clamp(std::get<FloatValue>(cps).value, 1.f, 100.f);
 	auto interval = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
 		std::chrono::duration<double>(1.0 / cpsVal));
+	constexpr auto window = std::chrono::milliseconds(300);
+	while (!placeHistory.empty() && now - placeHistory.front() >= window) {
+		placeHistory.pop_front();
+	}
+	if (placeHistory.size() >= 3) {
+		return;
+	}
 	if (forcePlaceImmediate) {
 		sendRightClick();
+		pendingPlace = true;
+		pendingSlot = inv->selectedSlot;
+		pendingCount = selected ? selected->itemCount : 0;
+		pendingAt = now;
 		nextClick = now + interval;
 		forcePlaceImmediate = false;
 		return;
@@ -170,4 +202,8 @@ void BlockPlacer::onTick(Event&) {
 	nextClick = now + interval;
 
 	sendRightClick();
+	pendingPlace = true;
+	pendingSlot = inv->selectedSlot;
+	pendingCount = selected ? selected->itemCount : 0;
+	pendingAt = now;
 }

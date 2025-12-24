@@ -1,6 +1,7 @@
 #pragma once
 #include "../../Module.h"
 #include <chrono>
+#include <deque>
 
 class BlockPlacer : public Module {
 public:
@@ -18,4 +19,9 @@ private:
 	bool wasPlacing = false;
 	bool forcePlace = false;
 	bool forcePlaceImmediate = false;
+	std::deque<std::chrono::steady_clock::time_point> placeHistory;
+	bool pendingPlace = false;
+	int pendingSlot = -1;
+	uint8_t pendingCount = 0;
+	std::chrono::steady_clock::time_point pendingAt = {};
 };

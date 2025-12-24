@@ -218,12 +218,29 @@ void AutoClicker::onClick(Event& evG) {
 
 void AutoClicker::onTick(Event&) {
 	auto mcGame = SDK::ClientInstance::get()->minecraftGame;
-	if (!mcGame || !mcGame->isCursorGrabbed()) {
+	if (!mcGame) {
 		if (holdingBlock) {
 			pushMouseButton(false);
 			holdingBlock = false;
 		}
 		shouldClick = false;
+		cursorWasGrabbed = false;
+		return;
+	}
+	bool grabbed = mcGame->isCursorGrabbed();
+	if (grabbed && !cursorWasGrabbed) {
+		cursorGrabbedAt = std::chrono::steady_clock::now();
+	}
+	cursorWasGrabbed = grabbed;
+	if (!grabbed) {
+		if (holdingBlock) {
+			pushMouseButton(false);
+			holdingBlock = false;
+		}
+		shouldClick = false;
+		return;
+	}
+	if (std::chrono::steady_clock::now() - cursorGrabbedAt < std::chrono::milliseconds(100)) {
 		return;
 	}
 
