@@ -3,7 +3,6 @@
 #include "modules/misc/TestModule.h"
 #include "modules/misc/DebugInfo.h"
 #include "modules/misc/Nickname.h"
-#include "modules/misc/ItemTweaks.h"
 #include "modules/misc/DebugInfo.h"
 #include "modules/misc/CommandShortcuts.h"
 #include "modules/misc/BlockGame.h"
@@ -17,6 +16,10 @@
 #include "modules/game/TextHotkey.h"
 #include "modules/game/Freelook.h"
 #include "modules/game/AutoGG.h"
+#include "modules/game/AutoClicker.h"
+#include "modules/game/AutoEat.h"
+#include "modules/game/AutoUse.h"
+#include "modules/game/BlockPlacer.h"
 
 #include "modules/visual/Fullbright.h"
 #include "modules/visual/MotionBlur.h"
@@ -96,6 +99,10 @@ ModuleManager::ModuleManager() {
 	this->items.push_back(std::make_shared<CustomCoordinates>());
 	this->items.push_back(std::make_shared<MovableCoordinates>());
 	this->items.push_back(std::make_shared<AutoGG>());
+	this->items.push_back(std::make_shared<AutoClicker>());
+	this->items.push_back(std::make_shared<AutoEat>());
+	this->items.push_back(std::make_shared<AutoUse>());
+	this->items.push_back(std::make_shared<BlockPlacer>());
 	this->items.push_back(std::make_shared<FrameTimeDisplay>());
 	this->items.push_back(std::make_shared<BlockGame>());
 
