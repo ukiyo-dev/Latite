@@ -4,6 +4,7 @@
 #include "client/input/Keyboard.h"
 #include "client/event/events/UpdateEvent.h"
 #include "client/event/events/ClickEvent.h"
+#include "client/event/events/AttackEvent.h"
 #include "mc/common/world/actor/player/Player.h"
 #include "mc/common/client/game/MinecraftGame.h"
 #include "mc/common/world/level/Level.h"
@@ -191,6 +192,14 @@ namespace {
 		inputs[1].ki.dwFlags = KEYEVENTF_KEYUP;
 		SendInput(2, inputs, sizeof(INPUT));
 	}
+
+	float distSq(Vec3 const& a, Vec3 const& b) {
+		float dx = a.x - b.x;
+		float dy = a.y - b.y;
+		float dz = a.z - b.z;
+		return dx * dx + dy * dy + dz * dz;
+	}
+
 }
 
 AutoClicker::AutoClicker() : Module("AutoClicker", LocalizeString::get("client.module.autoClicker.name"),
@@ -202,12 +211,15 @@ AutoClicker::AutoClicker() : Module("AutoClicker", LocalizeString::get("client.m
 	           LocalizeString::get("client.module.autoClicker.force.desc"), this->forceClick);
 	addSetting("critMode", LocalizeString::get("client.module.autoClicker.crit.name"),
 	           LocalizeString::get("client.module.autoClicker.crit.desc"), this->critMode);
+	addSetting("proMode", LocalizeString::get("client.module.autoClicker.pro.name"),
+	           LocalizeString::get("client.module.autoClicker.pro.desc"), this->proMode);
 	addSliderSetting("graceMs", LocalizeString::get("client.module.autoClicker.grace.name"),
 	                 LocalizeString::get("client.module.autoClicker.grace.desc"), this->graceMs, FloatValue(0.f),
 	                 FloatValue(1000.f), FloatValue(100.f), "forceClick"_isfalse);
 
 	listen<UpdateEvent>((EventListenerFunc)&AutoClicker::onTick);
 	listen<ClickEvent>((EventListenerFunc)&AutoClicker::onClick);
+	listen<AttackEvent>((EventListenerFunc)&AutoClicker::onAttack);
 }
 
 void AutoClicker::onClick(Event& evG) {
@@ -215,6 +227,12 @@ void AutoClicker::onClick(Event& evG) {
 	if (ev.getMouseButton() == 2) {
 		rightHeld = ev.isDown();
 	}
+}
+
+void AutoClicker::onAttack(Event& evG) {
+	auto& ev = reinterpret_cast<AttackEvent&>(evG);
+	lastAttackTarget = ev.getActor();
+	lastAttackAt = std::chrono::steady_clock::now();
 }
 
 void AutoClicker::onTick(Event&) {
@@ -412,6 +430,26 @@ void AutoClicker::onTick(Event&) {
 		holdingBlock = false;
 	}
 
+	bool proOnly = std::get<BoolValue>(proMode);
+	if (proOnly) {
+		if (hitEntity && lastAttackTarget && (now - lastAttackAt) < std::chrono::milliseconds(2000)) {
+			if (lastAttackTarget->invulnerableTime > 0) {
+				wasInvulBlocked = true;
+				if (now < nextInvulSwing) {
+					return;
+				}
+				nextInvulSwing = now + std::chrono::milliseconds(250);
+			}
+			if (wasInvulBlocked) {
+				nextClick = now;
+				wasInvulBlocked = false;
+			}
+		} else {
+			wasInvulBlocked = false;
+			nextInvulSwing = now;
+		}
+	}
+
 	bool critOnly = std::get<BoolValue>(critMode);
 	if (critOnly) {
 		auto sv = lp->stateVector;
@@ -453,6 +491,10 @@ void AutoClicker::onEnable() {
 	blockToolApplied = false;
 	weaponToolApplied = false;
 	activeMode = 0;
+	wasInvulBlocked = false;
+	nextInvulSwing = std::chrono::steady_clock::now();
+	lastAttackTarget = nullptr;
+	lastAttackAt = {};
 	nextCritSwing = std::chrono::steady_clock::now();
 }
 
@@ -467,5 +509,9 @@ void AutoClicker::onDisable() {
 	blockToolApplied = false;
 	weaponToolApplied = false;
 	activeMode = 0;
+	wasInvulBlocked = false;
+	nextInvulSwing = std::chrono::steady_clock::now();
+	lastAttackTarget = nullptr;
+	lastAttackAt = {};
 	nextCritSwing = std::chrono::steady_clock::now();
 }

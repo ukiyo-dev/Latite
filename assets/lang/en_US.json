@@ -284,6 +284,8 @@
         "client.module.autoClicker.force.desc": "Click even when no entity is detected (may swing air).",
         "client.module.autoClicker.crit.name": "Crit mode",
         "client.module.autoClicker.crit.desc": "Skip attacks while rising; allow all other phases.",
+        "client.module.autoClicker.pro.name": "Pro mode",
+        "client.module.autoClicker.pro.desc": "Gate attacks by target invulnerability timing.",
         "client.module.autoClicker.grace.name": "Grace window (ms)",
         "client.module.autoClicker.grace.desc": "Allow clicking briefly after pressing the key, even before a target is hit.",
         "client.module.autoUse.name": "Auto Use",
