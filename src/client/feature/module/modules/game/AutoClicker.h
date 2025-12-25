@@ -16,10 +16,12 @@ public:
 	void onAttack(Event& ev);
 	void onEnable() override;
 	void onDisable() override;
+	[[nodiscard]] int getTriggerKey() const { return std::get<KeyValue>(triggerKey).value; }
 
 private:
 	ValueType cps = FloatValue(10.f);
-	ValueType forceClick = BoolValue(false);
+	ValueType triggerKey = KeyValue(0);
+	ValueType restrictMode = BoolValue(false);
 	ValueType critMode = BoolValue(false);
 	ValueType proMode = BoolValue(false);
 	ValueType graceMs = FloatValue(500.f);
@@ -32,6 +34,7 @@ private:
 	bool weaponToolApplied = false;
 	bool cursorWasGrabbed = false;
 	bool wasInvulBlocked = false;
+	bool wasHitEntity = false;
 	std::chrono::steady_clock::time_point lastKeyDown = {};
 	std::chrono::steady_clock::time_point lastEntityHit = {};
 	std::chrono::steady_clock::time_point lastAttackAt = {};

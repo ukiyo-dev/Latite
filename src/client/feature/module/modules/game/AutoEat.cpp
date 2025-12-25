@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "AutoEat.h"
+#include "AutoClicker.h"
 #include "client/Latite.h"
 #include "client/input/Keyboard.h"
 #include "client/event/events/UpdateEvent.h"
@@ -162,7 +163,27 @@ void AutoEat::onTick(Event&) {
 	if (!rightDown) {
 		rightDown = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
 	}
+	bool autoClickerDown = false;
+	if (auto clickBase = Latite::getModuleManager().find("AutoClicker")) {
+		auto clickMod = static_cast<AutoClicker*>(clickBase.get());
+		int clickKey = clickMod ? clickMod->getTriggerKey() : 0;
+		if (clickKey != 0 && clickKey != vk) {
+			autoClickerDown = Latite::getKeyboard().isKeyDown(clickKey);
+			if (!autoClickerDown) {
+				autoClickerDown = (GetAsyncKeyState(clickKey) & 0x8000) != 0;
+			}
+		}
+	}
 	if (leftDown) {
+		if (isUsing) {
+			pushRightButton(false);
+			isUsing = false;
+		}
+		pendingStart = false;
+		blockUntilRelease = keyDown;
+		return;
+	}
+	if (autoClickerDown) {
 		if (isUsing) {
 			pushRightButton(false);
 			isUsing = false;

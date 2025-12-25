@@ -204,18 +204,20 @@ namespace {
 
 AutoClicker::AutoClicker() : Module("AutoClicker", LocalizeString::get("client.module.autoClicker.name"),
                                     LocalizeString::get("client.module.autoClicker.desc"), GAME, nokeybind) {
+	addSetting("triggerKey", LocalizeString::get("client.module.autoClicker.key.name"),
+	           LocalizeString::get("client.module.autoClicker.key.desc"), this->triggerKey);
 	addSliderSetting("cps", LocalizeString::get("client.module.autoClicker.cps.name"),
 	                 LocalizeString::get("client.module.autoClicker.cps.desc"), this->cps, FloatValue(1.f),
 	                 FloatValue(20.f), FloatValue(1.f));
 	addSetting("forceClick", LocalizeString::get("client.module.autoClicker.force.name"),
-	           LocalizeString::get("client.module.autoClicker.force.desc"), this->forceClick);
+	           LocalizeString::get("client.module.autoClicker.force.desc"), this->restrictMode);
 	addSetting("critMode", LocalizeString::get("client.module.autoClicker.crit.name"),
 	           LocalizeString::get("client.module.autoClicker.crit.desc"), this->critMode);
 	addSetting("proMode", LocalizeString::get("client.module.autoClicker.pro.name"),
 	           LocalizeString::get("client.module.autoClicker.pro.desc"), this->proMode);
 	addSliderSetting("graceMs", LocalizeString::get("client.module.autoClicker.grace.name"),
 	                 LocalizeString::get("client.module.autoClicker.grace.desc"), this->graceMs, FloatValue(0.f),
-	                 FloatValue(1000.f), FloatValue(100.f), "forceClick"_isfalse);
+	                 FloatValue(1000.f), FloatValue(100.f), "forceClick"_istrue);
 
 	listen<UpdateEvent>((EventListenerFunc)&AutoClicker::onTick);
 	listen<ClickEvent>((EventListenerFunc)&AutoClicker::onClick);
@@ -263,9 +265,18 @@ void AutoClicker::onTick(Event&) {
 		return;
 	}
 
-	bool leftDown = Latite::getKeyboard().isKeyDown(VK_LBUTTON);
-	if (!leftDown) {
-		leftDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
+	int triggerKey = std::get<KeyValue>(this->triggerKey);
+	bool leftDown = false;
+	if (triggerKey == 0) {
+		leftDown = Latite::getKeyboard().isKeyDown(VK_LBUTTON);
+		if (!leftDown) {
+			leftDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
+		}
+	} else {
+		leftDown = Latite::getKeyboard().isKeyDown(triggerKey);
+		if (!leftDown) {
+			leftDown = (GetAsyncKeyState(triggerKey) & 0x8000) != 0;
+		}
 	}
 	bool rightDown = rightHeld || Latite::getKeyboard().isKeyDown(VK_RBUTTON);
 	if (!rightDown) {
@@ -354,6 +365,11 @@ void AutoClicker::onTick(Event&) {
 	auto hr = level->getHitResult();
 	bool hitBlock = hr && hr->hitType == SDK::HitType::BLOCK;
 	bool hitEntity = hr && hr->hitType == SDK::HitType::ENTITY;
+
+	if (hitEntity && !wasHitEntity) {
+		nextClick = now;
+	}
+	wasHitEntity = hitEntity;
 
 	if (hitEntity) {
 		lastEntityHit = now;
@@ -467,17 +483,23 @@ void AutoClicker::onTick(Event&) {
 	}
 
 	if (now < nextClick) return;
-	bool force = std::get<BoolValue>(forceClick);
+	bool restrict = std::get<BoolValue>(restrictMode);
 	float grace = std::clamp(std::get<FloatValue>(graceMs).value, 0.f, 500.f);
 	auto graceWindow = std::chrono::milliseconds(static_cast<int>(grace));
 	bool inGrace = (now - lastEntityHit <= graceWindow) || (now - lastKeyDown <= graceWindow);
-	if (!force && !hitEntity && !inGrace) {
+	if (restrict && !hitEntity && !inGrace) {
 		return;
 	}
 
-	float cpsVal = std::clamp(std::get<FloatValue>(cps).value, 1.f, 20.f);
+	auto sv = lp->stateVector;
+	bool falling = critOnly && sv && sv->velocity.y < -0.05f && (sv->pos.y + 0.001f < sv->posOld.y);
 	auto interval = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
-		std::chrono::duration<double>(1.0 / cpsVal));
+		std::chrono::milliseconds(50));
+	if (!falling) {
+		float cpsVal = std::clamp(std::get<FloatValue>(cps).value, 1.f, 20.f);
+		interval = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+			std::chrono::duration<double>(1.0 / cpsVal));
+	}
 	nextClick = now + interval;
 	pushMouseButton(true);
 	pushMouseButton(false);
@@ -492,6 +514,7 @@ void AutoClicker::onEnable() {
 	weaponToolApplied = false;
 	activeMode = 0;
 	wasInvulBlocked = false;
+	wasHitEntity = false;
 	nextInvulSwing = std::chrono::steady_clock::now();
 	lastAttackTarget = nullptr;
 	lastAttackAt = {};
@@ -510,6 +533,7 @@ void AutoClicker::onDisable() {
 	weaponToolApplied = false;
 	activeMode = 0;
 	wasInvulBlocked = false;
+	wasHitEntity = false;
 	nextInvulSwing = std::chrono::steady_clock::now();
 	lastAttackTarget = nullptr;
 	lastAttackAt = {};
