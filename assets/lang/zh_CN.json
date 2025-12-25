@@ -306,6 +306,8 @@
     "client.module.blockPlacer.desc": "按住按键自动选择优先方块并快速放置。",
     "client.module.blockPlacer.cps.name": "右键 CPS",
     "client.module.blockPlacer.cps.desc": "按住时每秒放置的方块数量。",
+    "client.module.blockPlacer.rateLimit.name": "限制模式",
+    "client.module.blockPlacer.rateLimit.desc": "200ms 内最多 3 次成功放置。",
     "client.module.guiScaleChanger.name": "GUI 缩放更改器",
     "client.module.guiScaleChanger.guiscale.name": "缩放比例",
     "client.module.guiScaleChanger.desc": "更改 Minecraft GUI 的缩放比例",

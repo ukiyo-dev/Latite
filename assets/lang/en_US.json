@@ -306,6 +306,8 @@
         "client.module.blockPlacer.desc": "Hold a key to auto-select priority blocks and place them rapidly.",
         "client.module.blockPlacer.cps.name": "Right CPS",
         "client.module.blockPlacer.cps.desc": "Blocks placed per second when the key is held.",
+        "client.module.blockPlacer.rateLimit.name": "Limit mode",
+        "client.module.blockPlacer.rateLimit.desc": "Limit to 3 successful placements per 200ms.",
         "client.module.guiScaleChanger.name": "GUI Scale Changer",
         "client.module.guiScaleChanger.guiscale.name": "Guiscale",
         "client.module.guiScaleChanger.desc": "Change the scale of the Minecraft GUI",

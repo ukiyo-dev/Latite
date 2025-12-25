@@ -96,6 +96,8 @@ BlockPlacer::BlockPlacer()
 	addSliderSetting("cps", LocalizeString::get("client.module.blockPlacer.cps.name"),
 	                 LocalizeString::get("client.module.blockPlacer.cps.desc"), this->cps, FloatValue(1.f),
 	                 FloatValue(100.f), FloatValue(1.f));
+	addSetting("rateLimit", LocalizeString::get("client.module.blockPlacer.rateLimit.name"),
+	           LocalizeString::get("client.module.blockPlacer.rateLimit.desc"), rateLimit);
 
 	listen<UpdateEvent>((EventListenerFunc)&BlockPlacer::onTick);
 }
@@ -181,12 +183,14 @@ void BlockPlacer::onTick(Event&) {
 	float cpsVal = std::clamp(std::get<FloatValue>(cps).value, 1.f, 100.f);
 	auto interval = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
 		std::chrono::duration<double>(1.0 / cpsVal));
-	constexpr auto window = std::chrono::milliseconds(300);
-	while (!placeHistory.empty() && now - placeHistory.front() >= window) {
-		placeHistory.pop_front();
-	}
-	if (placeHistory.size() >= 3) {
-		return;
+	if (std::get<BoolValue>(rateLimit)) {
+		constexpr auto window = std::chrono::milliseconds(200);
+		while (!placeHistory.empty() && now - placeHistory.front() >= window) {
+			placeHistory.pop_front();
+		}
+		if (placeHistory.size() >= 3) {
+			return;
+		}
 	}
 	if (forcePlaceImmediate) {
 		sendRightClick();

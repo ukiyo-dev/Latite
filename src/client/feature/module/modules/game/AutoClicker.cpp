@@ -11,6 +11,7 @@
 #include "mc/common/client/game/MouseInputPacket.h"
 #include "mc/common/world/ItemStack.h"
 #include "mc/Addresses.h"
+#include "AutoEat.h"
 #include <algorithm>
 #include <vector>
 #include <Windows.h>
@@ -277,7 +278,27 @@ void AutoClicker::onTick(Event&) {
 		return;
 	}
 
-	if (rightDown) {
+	bool skipRightSwitch = false;
+	auto eatBase = Latite::getModuleManager().find("AutoEat");
+	auto eatMod = eatBase ? static_cast<AutoEat*>(eatBase.get()) : nullptr;
+	if (eatMod) {
+		if (eatMod->isUsingItem()) {
+			skipRightSwitch = true;
+		} else {
+			int eatKey = eatMod->getKeybind();
+			if (eatKey != 0) {
+				bool eatDown = Latite::getKeyboard().isKeyDown(eatKey);
+				if (!eatDown) {
+					eatDown = (GetAsyncKeyState(eatKey) & 0x8000) != 0;
+				}
+				if (eatDown) {
+					skipRightSwitch = true;
+				}
+			}
+		}
+	}
+
+	if (rightDown && !skipRightSwitch) {
 		auto inv = lp->supplies;
 		if (inv && inv->inventory) {
 			auto selected = inv->inventory->getItem(inv->selectedSlot);
@@ -397,8 +418,13 @@ void AutoClicker::onTick(Event&) {
 		if (!sv) {
 			return;
 		}
-		if (sv->velocity.y > 0.03f) {
-			return;
+		if (sv->velocity.y > 0.05f) {
+			if (now < nextCritSwing) {
+				return;
+			}
+			nextCritSwing = now + std::chrono::milliseconds(250);
+		} else {
+			nextCritSwing = now;
 		}
 	}
 
@@ -427,6 +453,7 @@ void AutoClicker::onEnable() {
 	blockToolApplied = false;
 	weaponToolApplied = false;
 	activeMode = 0;
+	nextCritSwing = std::chrono::steady_clock::now();
 }
 
 void AutoClicker::onDisable() {
@@ -440,4 +467,5 @@ void AutoClicker::onDisable() {
 	blockToolApplied = false;
 	weaponToolApplied = false;
 	activeMode = 0;
+	nextCritSwing = std::chrono::steady_clock::now();
 }

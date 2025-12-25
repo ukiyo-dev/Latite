@@ -158,7 +158,20 @@ void AutoEat::onTick(Event&) {
 	if (!leftDown) {
 		leftDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
 	}
+	bool rightDown = Latite::getKeyboard().isKeyDown(VK_RBUTTON);
+	if (!rightDown) {
+		rightDown = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
+	}
 	if (leftDown) {
+		if (isUsing) {
+			pushRightButton(false);
+			isUsing = false;
+		}
+		pendingStart = false;
+		blockUntilRelease = keyDown;
+		return;
+	}
+	if (rightDown) {
 		if (isUsing) {
 			pushRightButton(false);
 			isUsing = false;

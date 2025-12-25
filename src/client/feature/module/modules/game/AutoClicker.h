@@ -29,5 +29,6 @@ private:
 	std::chrono::steady_clock::time_point lastEntityHit = {};
 	std::chrono::steady_clock::time_point nextWeaponCheck = std::chrono::steady_clock::now();
 	std::chrono::steady_clock::time_point nextClick = std::chrono::steady_clock::now();
+	std::chrono::steady_clock::time_point nextCritSwing = std::chrono::steady_clock::now();
 	std::chrono::steady_clock::time_point cursorGrabbedAt = {};
 };

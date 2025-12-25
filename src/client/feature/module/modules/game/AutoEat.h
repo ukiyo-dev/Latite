@@ -13,6 +13,7 @@ public:
 
 	bool shouldHoldToToggle() override { return true; }
 	bool shouldListen() override { return true; }
+	[[nodiscard]] bool isUsingItem() const { return isUsing; }
 
 private:
 	bool isUsing = false;
