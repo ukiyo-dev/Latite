@@ -69,9 +69,14 @@ namespace {
 		return contains(name, "pickaxe");
 	}
 
+	bool isTrident(std::string const& name) {
+		return contains(name, "trident");
+	}
+
 	int scoreForWeapon(std::string const& name) {
 		int tier = tierFromName(name);
 		if (isSword(name)) return 100 + tier;
+		if (isTrident(name)) return 104; // between iron sword (103) and diamond sword (105)
 		if (isAxe(name)) return 90 + tier;
 		if (isPickaxe(name)) return 80 + tier;
 		return 0;
