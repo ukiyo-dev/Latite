@@ -319,7 +319,7 @@ void AutoClicker::onTick(Event&) {
 		if (eatMod->isUsingItem()) {
 			skipRightSwitch = true;
 		} else {
-			int eatKey = eatMod->getKeybind();
+			int eatKey = eatMod->getTriggerKey();
 			if (eatKey != 0) {
 				bool eatDown = Latite::getKeyboard().isKeyDown(eatKey);
 				if (!eatDown) {

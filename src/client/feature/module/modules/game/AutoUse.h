@@ -27,4 +27,6 @@ private:
 	std::array<bool, 3> wasKeyDown = { false, false, false };
 	int usingSlot = -1;
 	uint8_t usingCount = 0;
+	std::chrono::steady_clock::time_point useStart = {};
+	std::chrono::milliseconds useTimeout = std::chrono::milliseconds(100);
 };

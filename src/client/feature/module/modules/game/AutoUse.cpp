@@ -120,6 +120,7 @@ void AutoUse::onEnable() {
 	wasKeyDown = { false, false, false };
 	usingSlot = -1;
 	usingCount = 0;
+	useStart = {};
 }
 
 void AutoUse::onDisable() {
@@ -133,6 +134,7 @@ void AutoUse::onDisable() {
 	wasKeyDown = { false, false, false };
 	usingSlot = -1;
 	usingCount = 0;
+	useStart = {};
 }
 
 void AutoUse::onTick(Event&) {
@@ -213,6 +215,7 @@ void AutoUse::onTick(Event&) {
 			}
 			pendingStart = true;
 			activeKey = i;
+			useStart = {};
 		}
 	}
 	if (isUsing) {
@@ -230,6 +233,14 @@ void AutoUse::onTick(Event&) {
 				blockUntilRelease[activeKey] = true;
 			}
 			pendingStart = false;
+			useStart = {};
+		}
+		auto now = std::chrono::steady_clock::now();
+		if (useStart != std::chrono::steady_clock::time_point{} && now - useStart > useTimeout) {
+			pushRightButton(false);
+			isUsing = false;
+			pendingStart = false;
+			useStart = {};
 		}
 		return;
 	}
@@ -258,6 +269,7 @@ void AutoUse::onTick(Event&) {
 	usingSlot = bestSlot;
 	usingCount = selected->itemCount;
 	pushRightButton(true);
+	useStart = std::chrono::steady_clock::now();
 	isUsing = true;
 	pendingStart = false;
 }

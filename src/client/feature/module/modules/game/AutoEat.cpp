@@ -106,7 +106,9 @@ namespace {
 
 AutoEat::AutoEat()
 	: Module("AutoEat", LocalizeString::get("client.module.autoEat.name"),
-	         LocalizeString::get("client.module.autoEat.desc"), GAME) {
+	         LocalizeString::get("client.module.autoEat.desc"), GAME, nokeybind) {
+	addSetting("triggerKey", LocalizeString::get("client.module.props.key.name"),
+	           LocalizeString::get("client.module.props.key.desc"), triggerKey);
 	listen<UpdateEvent>((EventListenerFunc)&AutoEat::onTick);
 }
 
@@ -114,45 +116,67 @@ void AutoEat::onEnable() {
 	isUsing = false;
 	pendingStart = false;
 	wasKeyDown = false;
-	blockUntilRelease = false;
 	usingSlot = -1;
+	pendingSlot = -1;
+	lastSelectedSlot = -1;
+	useActiveSeen = false;
 	useStart = {};
-	useDuration = std::chrono::milliseconds(1600);
+	ignoreInterruptUntil = {};
 }
 
 void AutoEat::onDisable() {
+	if (isUsing) {
+		pushRightButton(false);
+	}
+	isUsing = false;
+	pendingStart = false;
+	wasKeyDown = false;
+	usingSlot = -1;
+	pendingSlot = -1;
+	lastSelectedSlot = -1;
+	useActiveSeen = false;
+	useStart = {};
+	ignoreInterruptUntil = {};
 }
 
 void AutoEat::onTick(Event&) {
+	auto stopUsing = [&]() {
+		if (isUsing) {
+			pushRightButton(false);
+		}
+		isUsing = false;
+		usingSlot = -1;
+		useActiveSeen = false;
+		useStart = {};
+		ignoreInterruptUntil = {};
+	};
+	auto clearPending = [&]() {
+		pendingStart = false;
+		pendingSlot = -1;
+		lastSelectedSlot = -1;
+	};
+
+	auto now = std::chrono::steady_clock::now();
+
 	auto mcGame = SDK::ClientInstance::get()->minecraftGame;
 	if (!mcGame || !mcGame->isCursorGrabbed()) {
-		if (isUsing) {
-			pushRightButton(false);
-			isUsing = false;
-		}
-		pendingStart = false;
-		blockUntilRelease = false;
+		stopUsing();
+		clearPending();
 		wasKeyDown = false;
 		return;
 	}
 
-	int vk = getKeybind();
+	int vk = std::get<KeyValue>(triggerKey);
 	if (vk == 0) {
-		if (isUsing) {
-			pushRightButton(false);
-			isUsing = false;
-		}
-		pendingStart = false;
-		blockUntilRelease = false;
+		stopUsing();
+		clearPending();
 		wasKeyDown = false;
 		return;
 	}
 
-	bool keyDown = Latite::getKeyboard().isKeyDown(vk);
-	if (!keyDown) {
-		keyDown = (GetAsyncKeyState(vk) & 0x8000) != 0;
-	}
-	bool justPressed = keyDown && !wasKeyDown;
+	auto keyState = GetAsyncKeyState(vk);
+	bool keyDown = Latite::getKeyboard().isKeyDown(vk) || ((keyState & 0x8000) != 0);
+	bool justPressed = (keyDown && !wasKeyDown) || (!keyDown && !wasKeyDown && (keyState & 0x0001) != 0);
 	wasKeyDown = keyDown;
 
 	bool leftDown = Latite::getKeyboard().isKeyDown(VK_LBUTTON);
@@ -174,36 +198,22 @@ void AutoEat::onTick(Event&) {
 			}
 		}
 	}
-	if (leftDown) {
-		if (isUsing) {
-			pushRightButton(false);
-			isUsing = false;
+	if (now >= ignoreInterruptUntil) {
+		if (leftDown) {
+			stopUsing();
+			clearPending();
+			return;
 		}
-		pendingStart = false;
-		blockUntilRelease = keyDown;
-		return;
-	}
-	if (autoClickerDown) {
-		if (isUsing) {
-			pushRightButton(false);
-			isUsing = false;
+		if (autoClickerDown) {
+			stopUsing();
+			clearPending();
+			return;
 		}
-		pendingStart = false;
-		blockUntilRelease = keyDown;
-		return;
-	}
-	if (rightDown) {
-		if (isUsing) {
-			pushRightButton(false);
-			isUsing = false;
+		if (rightDown) {
+			stopUsing();
+			clearPending();
+			return;
 		}
-		pendingStart = false;
-		blockUntilRelease = keyDown;
-		return;
-	}
-
-	if (!keyDown) {
-		blockUntilRelease = false;
 	}
 
 	auto lp = SDK::ClientInstance::get()->getLocalPlayer();
@@ -212,39 +222,45 @@ void AutoEat::onTick(Event&) {
 	}
 
 	auto inv = lp->supplies;
-	if (justPressed && !blockUntilRelease) {
-		if (isUsing) {
-			pushRightButton(false);
-			isUsing = false;
-		}
+	if (justPressed) {
+		stopUsing();
+		clearPending();
 		pendingStart = true;
+		lastSelectedSlot = inv->selectedSlot;
+		ignoreInterruptUntil = now + std::chrono::milliseconds(50);
 	}
 
 	if (isUsing) {
 		if (inv->selectedSlot != usingSlot) {
-			pushRightButton(false);
-			isUsing = false;
-			pendingStart = false;
-			return;
+			if (now >= ignoreInterruptUntil) {
+				stopUsing();
+				clearPending();
+				return;
+			}
 		}
 		auto stack = inv->inventory->getItem(usingSlot);
-		if (!stack || !stack->valid) {
-			pushRightButton(false);
-			isUsing = false;
-			if (keyDown) {
-				blockUntilRelease = true;
-			}
-			pendingStart = false;
+		if (!stack || !stack->valid || stack->itemCount == 0) {
+			stopUsing();
+			clearPending();
 			return;
 		}
-		auto now = std::chrono::steady_clock::now();
+		if (!isPreferredFood(stack)) {
+			stopUsing();
+			clearPending();
+			return;
+		}
+		int useDur = lp->getItemUseDuration();
+		if (useDur > 0) {
+			useActiveSeen = true;
+		} else if (useActiveSeen) {
+			stopUsing();
+			clearPending();
+			return;
+		}
 		if (now - useStart >= useDuration) {
-			pushRightButton(false);
-			isUsing = false;
-			if (keyDown) {
-				blockUntilRelease = true;
-			}
-			pendingStart = false;
+			stopUsing();
+			clearPending();
+			return;
 		}
 		return;
 	}
@@ -253,23 +269,39 @@ void AutoEat::onTick(Event&) {
 		return;
 	}
 
-	auto current = inv->inventory->getItem(inv->selectedSlot);
-	bool keepCurrent = isPreferredFood(current);
-	int bestSlot = keepCurrent ? inv->selectedSlot : findBestFoodSlot(inv);
-	if (bestSlot == -1) return;
+	if (pendingSlot == -1) {
+		auto current = inv->inventory->getItem(inv->selectedSlot);
+		bool keepCurrent = isPreferredFood(current);
+		int bestSlot = keepCurrent ? inv->selectedSlot : findBestFoodSlot(inv);
+		if (bestSlot == -1) {
+			clearPending();
+			return;
+		}
+		pendingSlot = bestSlot;
+		lastSelectedSlot = inv->selectedSlot;
+	}
 
-	if (inv->selectedSlot != bestSlot) {
-		sendHotbarKey(bestSlot);
+	if (inv->selectedSlot != pendingSlot) {
+		if (lastSelectedSlot != -1 && inv->selectedSlot != lastSelectedSlot && inv->selectedSlot != pendingSlot) {
+			clearPending();
+			return;
+		}
+		sendHotbarKey(pendingSlot);
+		lastSelectedSlot = inv->selectedSlot;
 		return;
 	}
 
 	auto selected = inv->inventory->getItem(inv->selectedSlot);
-	if (!isPreferredFood(selected)) return;
+	if (!isPreferredFood(selected)) {
+		clearPending();
+		return;
+	}
 
-	usingSlot = bestSlot;
-	useStart = std::chrono::steady_clock::now();
-	useDuration = std::chrono::milliseconds(1650);
+	usingSlot = pendingSlot;
+	useStart = now;
+	useActiveSeen = false;
+	ignoreInterruptUntil = now + std::chrono::milliseconds(50);
 	pushRightButton(true);
 	isUsing = true;
-	pendingStart = false;
+	clearPending();
 }
