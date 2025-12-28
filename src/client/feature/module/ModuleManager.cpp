@@ -6,6 +6,7 @@
 #include "modules/misc/DebugInfo.h"
 #include "modules/misc/CommandShortcuts.h"
 #include "modules/misc/BlockGame.h"
+#include "modules/misc/PlayerDelay.h"
 
 #include "modules/game/Zoom.h"
 #include "modules/game/CinematicCamera.h"
@@ -105,6 +106,7 @@ ModuleManager::ModuleManager() {
 	this->items.push_back(std::make_shared<BlockPlacer>());
 	this->items.push_back(std::make_shared<FrameTimeDisplay>());
 	this->items.push_back(std::make_shared<BlockGame>());
+	this->items.push_back(std::make_shared<PlayerDelay>());
 
 	for (auto& mod : items) {
 		mod->onInit();

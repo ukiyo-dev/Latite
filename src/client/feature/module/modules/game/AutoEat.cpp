@@ -14,6 +14,8 @@
 #include <Windows.h>
 
 namespace {
+	constexpr auto kAutoEatPriorityWindow = std::chrono::milliseconds(100);
+
 	bool endsWith(std::string const& text, std::string_view suffix) {
 		if (suffix.size() > text.size()) return false;
 		return std::equal(suffix.rbegin(), suffix.rend(), text.rbegin());
@@ -188,8 +190,9 @@ void AutoEat::onTick(Event&) {
 		rightDown = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
 	}
 	bool autoClickerDown = false;
+	AutoClicker* clickMod = nullptr;
 	if (auto clickBase = Latite::getModuleManager().find("AutoClicker")) {
-		auto clickMod = static_cast<AutoClicker*>(clickBase.get());
+		clickMod = static_cast<AutoClicker*>(clickBase.get());
 		int clickKey = clickMod ? clickMod->getTriggerKey() : 0;
 		if (clickKey != 0 && clickKey != vk) {
 			autoClickerDown = Latite::getKeyboard().isKeyDown(clickKey);
@@ -198,6 +201,24 @@ void AutoEat::onTick(Event&) {
 			}
 		}
 	}
+
+	auto lp = SDK::ClientInstance::get()->getLocalPlayer();
+	if (!lp || !lp->gameMode || !lp->supplies || !lp->supplies->inventory) {
+		return;
+	}
+
+	auto inv = lp->supplies;
+	if (justPressed) {
+		stopUsing();
+		clearPending();
+		pendingStart = true;
+		lastSelectedSlot = inv->selectedSlot;
+		ignoreInterruptUntil = now + kAutoEatPriorityWindow;
+		if (clickMod) {
+			clickMod->blockClicksFor(kAutoEatPriorityWindow);
+		}
+	}
+
 	if (now >= ignoreInterruptUntil) {
 		if (leftDown) {
 			stopUsing();
@@ -215,21 +236,6 @@ void AutoEat::onTick(Event&) {
 			return;
 		}
 	}
-
-	auto lp = SDK::ClientInstance::get()->getLocalPlayer();
-	if (!lp || !lp->gameMode || !lp->supplies || !lp->supplies->inventory) {
-		return;
-	}
-
-	auto inv = lp->supplies;
-	if (justPressed) {
-		stopUsing();
-		clearPending();
-		pendingStart = true;
-		lastSelectedSlot = inv->selectedSlot;
-		ignoreInterruptUntil = now + std::chrono::milliseconds(50);
-	}
-
 	if (isUsing) {
 		if (inv->selectedSlot != usingSlot) {
 			if (now >= ignoreInterruptUntil) {
@@ -300,7 +306,6 @@ void AutoEat::onTick(Event&) {
 	usingSlot = pendingSlot;
 	useStart = now;
 	useActiveSeen = false;
-	ignoreInterruptUntil = now + std::chrono::milliseconds(50);
 	pushRightButton(true);
 	isUsing = true;
 	clearPending();

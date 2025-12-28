@@ -17,6 +17,7 @@ public:
 	void onEnable() override;
 	void onDisable() override;
 	[[nodiscard]] int getTriggerKey() const { return std::get<KeyValue>(triggerKey).value; }
+	void blockClicksFor(std::chrono::milliseconds duration);
 
 private:
 	ValueType cps = FloatValue(10.f);
@@ -43,5 +44,6 @@ private:
 	std::chrono::steady_clock::time_point nextCritSwing = std::chrono::steady_clock::now();
 	std::chrono::steady_clock::time_point nextInvulSwing = std::chrono::steady_clock::now();
 	std::chrono::steady_clock::time_point cursorGrabbedAt = {};
+	std::chrono::steady_clock::time_point blockUntil = {};
 	SDK::Actor* lastAttackTarget = nullptr;
 };

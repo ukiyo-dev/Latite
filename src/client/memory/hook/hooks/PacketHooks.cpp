@@ -1,7 +1,10 @@
 #include "pch.h"
 #include "PacketHooks.h"
+#include "client/feature/module/modules/misc/PlayerDelay.h"
 #include "client/script/PluginManager.h"
+#include "mc/common/network/packet/MoveActorDeltaPacket.h"
 #include <mc/common/network/MinecraftPackets.h>
+#include <deque>
 
 namespace {
 	std::shared_ptr<Hook> SetTitlePacketRead;
@@ -10,6 +13,72 @@ namespace {
 	std::shared_ptr<Hook> CreatePacketHook;
 
 	std::array<std::shared_ptr<Hook>, (size_t)SDK::PacketID::COUNT> PacketHookArray;
+
+	struct DelayedPacket {
+		std::shared_ptr<SDK::Packet> packet;
+		void* instance = nullptr;
+		void* networkIdentifier = nullptr;
+		void* netEventCallback = nullptr;
+		std::shared_ptr<Hook> hook;
+		std::chrono::steady_clock::time_point readyAt;
+	};
+
+	std::deque<DelayedPacket> movePlayerDelayQueue;
+
+	static PlayerDelay* getOtherPlayerDelayModule() {
+		static PlayerDelay* cached = nullptr;
+		if (!cached) {
+			auto mod = Latite::getModuleManager().find("PlayerDelay");
+			if (mod) cached = static_cast<PlayerDelay*>(mod.get());
+		}
+		return cached;
+	}
+
+	static int getOtherPlayerDelayMs() {
+		auto* mod = getOtherPlayerDelayModule();
+		if (!mod || !mod->isEnabled()) return 0;
+		auto delay = mod->getDelayMs();
+		if (delay < 0) return 0;
+		if (delay > 200) return 200;
+		return delay;
+	}
+
+	static void flushMovePlayerDelayQueue(bool forceAll) {
+		if (movePlayerDelayQueue.empty()) return;
+
+		auto now = std::chrono::steady_clock::now();
+		using PacketHandlerFn = void(*)(void*, void*, void*, std::shared_ptr<SDK::Packet>&);
+		while (!movePlayerDelayQueue.empty()) {
+			auto& front = movePlayerDelayQueue.front();
+			if (!forceAll && front.readyAt > now) {
+				break;
+			}
+
+			auto delayed = std::move(front);
+			movePlayerDelayQueue.pop_front();
+			delayed.hook->oFunc<PacketHandlerFn>()(
+				delayed.instance, delayed.networkIdentifier, delayed.netEventCallback, delayed.packet);
+		}
+	}
+
+	class MovePlayerDelayListener : public Listener {
+	public:
+		MovePlayerDelayListener() {
+			Eventing::get().listen<TickEvent, &MovePlayerDelayListener::onTick>(this);
+			Eventing::get().listen<LeaveGameEvent, &MovePlayerDelayListener::onLeave>(this);
+		}
+
+		void onTick(Event&) {
+			auto delayMs = getOtherPlayerDelayMs();
+			flushMovePlayerDelayQueue(delayMs <= 0);
+		}
+
+		void onLeave(Event&) {
+			movePlayerDelayQueue.clear();
+		}
+	};
+
+	MovePlayerDelayListener movePlayerDelayListener;
 }
 
 void PacketHooks::PacketSender_sendToServer(SDK::PacketSender* sender, SDK::Packet* packet) {
@@ -32,6 +101,26 @@ void PacketHooks::PacketHandlerDispatcherInstance_handle(void* instance, void* n
 	auto& hook = PacketHookArray[(size_t)packet->getID()];
 
 	if (Latite::isMainThread()) {
+		auto delayMs = getOtherPlayerDelayMs();
+		if (delayMs > 0 && packet->getID() == SDK::PacketID::MOVE_ACTOR_DELTA) {
+			auto* lp = SDK::ClientInstance::get()->getLocalPlayer();
+			if (lp) {
+				auto* deltaPkt = static_cast<SDK::MoveActorDeltaPacket*>(packet.get());
+				int64_t pktRuntimeId = deltaPkt->runtimeEntityId;
+				if (pktRuntimeId != lp->getRuntimeID()) {
+					movePlayerDelayQueue.push_back({
+						packet,
+						instance,
+						networkIdentifier,
+						netEventCallback,
+						hook,
+						std::chrono::steady_clock::now() + std::chrono::milliseconds(delayMs)
+					});
+					return;
+				}
+			}
+		}
+
 		PacketReceiveEvent ev{ packet.get() };
 		Eventing::get().dispatch(ev);
 

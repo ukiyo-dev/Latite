@@ -270,6 +270,17 @@ void AutoClicker::onTick(Event&) {
 		return;
 	}
 
+	auto now = std::chrono::steady_clock::now();
+	if (now < blockUntil) {
+		if (holdingBlock) {
+			pushMouseButton(false);
+			holdingBlock = false;
+		}
+		shouldClick = false;
+		wasKeyDown = false;
+		return;
+	}
+
 	int triggerKey = std::get<KeyValue>(this->triggerKey);
 	bool leftDown = false;
 	if (triggerKey == 0) {
@@ -289,7 +300,6 @@ void AutoClicker::onTick(Event&) {
 	}
 	shouldClick = leftDown;
 	bool justPressed = leftDown && !wasKeyDown;
-	auto now = std::chrono::steady_clock::now();
 	if (justPressed) {
 		nextClick = now;
 		lastKeyDown = now;
@@ -524,6 +534,7 @@ void AutoClicker::onEnable() {
 	lastAttackTarget = nullptr;
 	lastAttackAt = {};
 	nextCritSwing = std::chrono::steady_clock::now();
+	blockUntil = {};
 }
 
 void AutoClicker::onDisable() {
@@ -543,4 +554,9 @@ void AutoClicker::onDisable() {
 	lastAttackTarget = nullptr;
 	lastAttackAt = {};
 	nextCritSwing = std::chrono::steady_clock::now();
+	blockUntil = {};
+}
+
+void AutoClicker::blockClicksFor(std::chrono::milliseconds duration) {
+	blockUntil = std::chrono::steady_clock::now() + duration;
 }
