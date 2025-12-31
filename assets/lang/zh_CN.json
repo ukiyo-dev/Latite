@@ -109,6 +109,8 @@
     "client.textmodule.cpsCounter.modeState1.name": "右键",
     "client.textmodule.cpsCounter.modeState2.name": "两者",
     "client.textmodule.cpsCounter.mode.name": "模式",
+    "client.textmodule.cpsCounter.effectivePlace.name": "有效放置",
+    "client.textmodule.cpsCounter.effectivePlace.desc": "右键 CPS 显示为方块放置 CPS",
     "client.textmodule.cpsCounter.desc": "显示你的 CPS（每秒点击次数）。",
     "client.textmodule.cpsCounter.mode.desc": "显示什么",
     "client.textmodule.clock.name": "时钟",

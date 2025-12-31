@@ -109,6 +109,8 @@
         "client.textmodule.cpsCounter.modeState1.name": "Right",
         "client.textmodule.cpsCounter.modeState2.name": "Both",
         "client.textmodule.cpsCounter.mode.name": "Mode",
+        "client.textmodule.cpsCounter.effectivePlace.name": "Effective Place",
+        "client.textmodule.cpsCounter.effectivePlace.desc": "Use block placement CPS for right-click",
         "client.textmodule.cpsCounter.desc": "Shows your CPS (clicks per second).",
         "client.textmodule.cpsCounter.mode.desc": "What to show",
         "client.textmodule.clock.name": "Clock",

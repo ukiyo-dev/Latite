@@ -125,7 +125,18 @@ void BlockPlacer::onDisable() {
 	pendingAt = {};
 }
 
+void BlockPlacer::updatePlaceCps(std::chrono::steady_clock::time_point now) {
+	constexpr auto window = std::chrono::seconds(1);
+	while (!placeCpsHistory.empty() && now - placeCpsHistory.front() >= window) {
+		placeCpsHistory.pop_front();
+	}
+	placeCps = static_cast<int>(placeCpsHistory.size());
+}
+
 void BlockPlacer::onTick(Event&) {
+	auto now = std::chrono::steady_clock::now();
+	updatePlaceCps(now);
+
 	auto mcGame = SDK::ClientInstance::get()->minecraftGame;
 	if (!mcGame || !mcGame->isCursorGrabbed()) {
 		return;
@@ -135,8 +146,6 @@ void BlockPlacer::onTick(Event&) {
 	if (!lp || !lp->gameMode || !lp->supplies || !lp->supplies->inventory) {
 		return;
 	}
-
-	auto now = std::chrono::steady_clock::now();
 
 	{
 		auto inv = lp->supplies;
@@ -160,6 +169,8 @@ void BlockPlacer::onTick(Event&) {
 			pendingPlace = false;
 		} else if (stack->itemCount < pendingCount) {
 			placeHistory.push_back(now);
+			placeCpsHistory.push_back(now);
+			updatePlaceCps(now);
 			pendingPlace = false;
 		} else if (now - pendingAt > std::chrono::milliseconds(500)) {
 			pendingPlace = false;
