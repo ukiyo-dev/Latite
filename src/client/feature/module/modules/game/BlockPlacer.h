@@ -20,6 +20,8 @@ private:
 
 	ValueType cps = FloatValue(20.f);
 	ValueType rateLimit = BoolValue(true);
+	ValueType rateLimitWindowMs = FloatValue(300.f);
+	ValueType rateLimitMax = FloatValue(3.f);
 	std::chrono::steady_clock::time_point nextClick = std::chrono::steady_clock::now();
 	bool wasPlacing = false;
 	bool forcePlace = false;

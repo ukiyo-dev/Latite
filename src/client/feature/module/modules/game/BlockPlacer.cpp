@@ -98,6 +98,12 @@ BlockPlacer::BlockPlacer()
 	                 FloatValue(100.f), FloatValue(1.f));
 	addSetting("rateLimit", LocalizeString::get("client.module.blockPlacer.rateLimit.name"),
 	           LocalizeString::get("client.module.blockPlacer.rateLimit.desc"), rateLimit);
+	addSliderSetting("rateLimitWindow", LocalizeString::get("client.module.blockPlacer.rateLimitWindow.name"),
+	                 LocalizeString::get("client.module.blockPlacer.rateLimitWindow.desc"), rateLimitWindowMs,
+	                 FloatValue(10.f), FloatValue(300.f), FloatValue(10.f), "rateLimit"_istrue);
+	addSliderSetting("rateLimitMax", LocalizeString::get("client.module.blockPlacer.rateLimitMax.name"),
+	                 LocalizeString::get("client.module.blockPlacer.rateLimitMax.desc"), rateLimitMax,
+	                 FloatValue(1.f), FloatValue(3.f), FloatValue(1.f), "rateLimit"_istrue);
 
 	listen<UpdateEvent>((EventListenerFunc)&BlockPlacer::onTick);
 }
@@ -195,12 +201,17 @@ void BlockPlacer::onTick(Event&) {
 	auto interval = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
 		std::chrono::duration<double>(1.0 / cpsVal));
 	if (std::get<BoolValue>(rateLimit)) {
-		constexpr auto window = std::chrono::milliseconds(200);
-		while (!placeHistory.empty() && now - placeHistory.front() >= window) {
-			placeHistory.pop_front();
-		}
-		if (placeHistory.size() >= 3) {
-			return;
+		float windowMs = std::get<FloatValue>(rateLimitWindowMs);
+		int windowMsInt = std::clamp(static_cast<int>(windowMs), 10, 300);
+		int maxPlacements = std::clamp(static_cast<int>(std::get<FloatValue>(rateLimitMax)), 1, 3);
+		if (windowMsInt > 0) {
+			const auto window = std::chrono::milliseconds(windowMsInt);
+			while (!placeHistory.empty() && now - placeHistory.front() >= window) {
+				placeHistory.pop_front();
+			}
+			if (static_cast<int>(placeHistory.size()) >= maxPlacements) {
+				return;
+			}
 		}
 	}
 	if (forcePlaceImmediate) {
