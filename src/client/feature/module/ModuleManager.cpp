@@ -16,6 +16,7 @@
 #include "modules/game/TextHotkey.h"
 #include "modules/game/Freelook.h"
 #include "modules/game/AutoGG.h"
+#include "modules/game/AutoTool.h"
 #include "modules/game/AutoClicker.h"
 #include "modules/game/AutoEat.h"
 #include "modules/game/AutoUse.h"
@@ -96,10 +97,11 @@ ModuleManager::ModuleManager() {
 	this->items.push_back(std::make_shared<TextHotkey>());
 	this->items.push_back(std::make_shared<Freelook>());
 	this->items.push_back(std::make_shared<ComboCounter>());
-	this->items.push_back(std::make_shared<CustomCoordinates>());
-	this->items.push_back(std::make_shared<MovableCoordinates>());
-	this->items.push_back(std::make_shared<AutoGG>());
-	this->items.push_back(std::make_shared<AutoClicker>());
+        this->items.push_back(std::make_shared<CustomCoordinates>());
+        this->items.push_back(std::make_shared<MovableCoordinates>());
+        this->items.push_back(std::make_shared<AutoGG>());
+        this->items.push_back(std::make_shared<AutoTool>());
+        this->items.push_back(std::make_shared<AutoClicker>());
 	this->items.push_back(std::make_shared<AutoEat>());
 	this->items.push_back(std::make_shared<AutoUse>());
 	this->items.push_back(std::make_shared<BlockPlacer>());

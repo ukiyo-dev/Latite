@@ -189,18 +189,14 @@ void AutoEat::onTick(Event&) {
 	if (!rightDown) {
 		rightDown = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
 	}
-	bool autoClickerDown = false;
-	AutoClicker* clickMod = nullptr;
-	if (auto clickBase = Latite::getModuleManager().find("AutoClicker")) {
-		clickMod = static_cast<AutoClicker*>(clickBase.get());
-		int clickKey = clickMod ? clickMod->getTriggerKey() : 0;
-		if (clickKey != 0 && clickKey != vk) {
-			autoClickerDown = Latite::getKeyboard().isKeyDown(clickKey);
-			if (!autoClickerDown) {
-				autoClickerDown = (GetAsyncKeyState(clickKey) & 0x8000) != 0;
-			}
-		}
-	}
+    bool autoClickerDown = false;
+    AutoClicker* clickMod = nullptr;
+    if (auto clickBase = Latite::getModuleManager().find("AutoClicker")) {
+            clickMod = static_cast<AutoClicker*>(clickBase.get());
+            if (clickMod && clickMod->isEnabled()) {
+                    autoClickerDown = leftDown;
+            }
+    }
 
 	auto lp = SDK::ClientInstance::get()->getLocalPlayer();
 	if (!lp || !lp->gameMode || !lp->supplies || !lp->supplies->inventory) {

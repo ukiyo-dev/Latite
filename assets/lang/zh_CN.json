@@ -276,7 +276,7 @@
     "client.module.hurtColor.name": "受伤颜色",
     "client.module.hurtColor.color.name": "颜色",
     "client.module.hurtColor.desc": "更改实体受击时的颜色",
-    "client.module.autoClicker.name": "智能辅助",
+    "client.module.autoClicker.name": "自动点击",
     "client.module.autoClicker.desc": "按住左键自动切换工具：实体用剑、方块用稿子；连点带宽松窗口。",
     "client.module.autoClicker.key.name": "触发按键",
     "client.module.autoClicker.key.desc": "使用此键触发自动点击，设为 None 则使用鼠标左键。",
@@ -290,6 +290,9 @@
     "client.module.autoClicker.pro.desc": "按目标无敌帧节拍出刀，减少无效刀。",
     "client.module.autoClicker.grace.name": "宽松窗口（毫秒）",
     "client.module.autoClicker.grace.desc": "按下按键后的短时间内允许点击，即使未命中目标。",
+    "client.module.autoTool.name": "自动工具",
+        "client.module.autoTool.rightClickBlock.name": "右键选方块",
+    "client.module.autoTool.rightClickBlock.desc": "右键时自动选择优先方块。",
     "client.module.autoUse.name": "自动使用",
     "client.module.autoUse.desc": "按下热键使用快捷栏中匹配正则的物品。",
     "client.module.autoUse.key1.name": "热键 1",
@@ -462,7 +465,7 @@
     "client.module.noHurtCam.name": "无受伤抖动",
     "client.module.noHurtCam.desc": "禁用受伤时的摄像机抖动。",
     "client.module.autoGG.name": "自动 GG",
-    "client.module.autoGG.desc": "自动在游戏结束后在聊天框内发送 \"gg\" (仅在 Hive 内可用)",
+    "client.module.autoGG.desc": "自动在游戏结束后在聊天框内发送 \"gg\" (仅在 Hive 与 CubeCraft 内可用)",
     "client.module.autoGG.useCustomMessage.name": "使用自定义消息",
     "client.module.autoGG.useCustomMessage.desc": "在游戏结束时发送自定义消息，而不是“gg”",
     "client.module.autoGG.customMessage.name": "消息",
@@ -494,3 +497,9 @@
     "client.message.languageSwitchHelper.name": "请重新启动游戏以完全应用语言更改！"
   }
 }
+
+
+
+
+
+
