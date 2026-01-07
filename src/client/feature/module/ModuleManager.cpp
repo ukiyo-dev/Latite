@@ -20,6 +20,7 @@
 #include "modules/game/AutoClicker.h"
 #include "modules/game/AutoEat.h"
 #include "modules/game/AutoUse.h"
+#include "modules/game/AutoAFK.h"
 #include "modules/game/BlockPlacer.h"
 
 #include "modules/visual/Fullbright.h"
@@ -102,9 +103,10 @@ ModuleManager::ModuleManager() {
         this->items.push_back(std::make_shared<AutoGG>());
         this->items.push_back(std::make_shared<AutoTool>());
         this->items.push_back(std::make_shared<AutoClicker>());
-	this->items.push_back(std::make_shared<AutoEat>());
-	this->items.push_back(std::make_shared<AutoUse>());
-	this->items.push_back(std::make_shared<BlockPlacer>());
+        this->items.push_back(std::make_shared<AutoEat>());
+        this->items.push_back(std::make_shared<AutoUse>());
+        this->items.push_back(std::make_shared<AutoAFK>());
+        this->items.push_back(std::make_shared<BlockPlacer>());
 	this->items.push_back(std::make_shared<FrameTimeDisplay>());
 	this->items.push_back(std::make_shared<BlockGame>());
 
