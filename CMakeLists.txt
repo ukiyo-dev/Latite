@@ -56,6 +56,9 @@ add_resources(EMBEDDED_RESOURCES ${RESOURCE_FILES})
 
 add_library(Latite SHARED ${Latite_SRC} ${EMBEDDED_RESOURCES})
 
+# enable exceptions
+target_compile_options(Latite PRIVATE $<$<COMPILE_LANG_AND_ID:CXX,MSVC,Clang,AppleClang>:/EHsc>)
+
 # C++ standard
 set_property(TARGET Latite PROPERTY CXX_STANDARD 23)
 
