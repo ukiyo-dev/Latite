@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 // LatiteRecode.cpp : Defines the entry point for the application.
 //
 #include <regex>
@@ -245,7 +245,9 @@ DWORD __stdcall startThread(HINSTANCE dll) {
         MVSIG(RenderMaterialGroup__common),
         MVSIG(GuiData_displayClientMessage),
         MVSIG(Misc::gameCorePointer),
-        MVSIG(MouseInputVector)
+        MVSIG(MouseInputVector),
+        MVSIG(Actor_setNameTag),
+        MVSIG(Actor_getNameTag)
     };
     
     new (configMgrBuf) ConfigManager();
@@ -291,6 +293,9 @@ DWORD __stdcall startThread(HINSTANCE dll) {
     }
 #if LATITE_DEBUG
     Logger::Info("Resolved {} signatures ({} dead)", sigCount, deadCount);
+    Logger::Info("Actor_getNameTag: result=0x{:X}, scan_result=0x{:X}",
+        Signatures::Actor_getNameTag.result,
+        Signatures::Actor_getNameTag.scan_result);
 #endif
 
     MH_Initialize();

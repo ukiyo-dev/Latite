@@ -81,6 +81,14 @@ void SDK::Actor::setNameTag(std::string* nametag) {
 	return reinterpret_cast<void(__fastcall*)(Actor*, std::string*)>(Signatures::Actor_setNameTag.result)(this, nametag);
 }
 
+const std::string& SDK::Actor::getNameTag() {
+	static const std::string empty;
+	if (!Signatures::Actor_getNameTag.result) return empty;
+	auto* result = reinterpret_cast<std::string*(__fastcall*)(Actor*)>(Signatures::Actor_getNameTag.result)(this);
+	if (!result) return empty;
+	return *result;
+}
+
 int64_t SDK::Actor::getRuntimeID() {
 	if (internalVers < V1_19_51) {
 		return hat::member_at<int64_t>(this, 0x550);

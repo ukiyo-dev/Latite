@@ -301,6 +301,10 @@ public:
 		"48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC ? 48 8B FA 48 8B D9 48 8B 89 ? ? ? ? 48 85 C9"_sig,
 		"Actor::setNameTag" };
 
+	inline static SigImpl Actor_getNameTag{ [](memory::signature_store&, uintptr_t res) { return res; },
+		"48 83 EC 28 48 8B 81 28 01 00 00 48 85 C0 74 4F"_sig,
+		"Actor::getNameTag" };
+
 	inline static SigImpl _updatePlayer{ [](memory::signature_store&, uintptr_t res) { return res; },
 		"40 55 53 57 41 54 41 55 41 57 48 8D 6C 24 ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 45 ? 49 8B 78"_sig,
 		"UpdatePlayerFromCameraSystemUtil::_updatePlayer" };

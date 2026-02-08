@@ -27,6 +27,8 @@ namespace {
 		if (endsWith(name, "obsidian")) return 4;
 		if (endsWith(name, "ladder")) return 5;
 		if (endsWith(name, "tnt")) return 6;
+		if (endsWith(name, "dirt") || name.find("dirt") != std::string::npos) return 7;
+		if (endsWith(name, "glass") || name.find("glass") != std::string::npos) return 8;
 		return -1;
 	}
 

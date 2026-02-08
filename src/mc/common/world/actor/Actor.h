@@ -40,6 +40,7 @@ namespace SDK {
 		Vec3& getPosOld();
 
 		int getCommandPermissionLevel();
+		const std::string& getNameTag();
 		void setNameTag(std::string* nametag);
 		int64_t getRuntimeID();
 		uint8_t getEntityTypeID();

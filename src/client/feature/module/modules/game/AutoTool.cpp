@@ -175,6 +175,10 @@ namespace
             return 2;
         if (endsWith(name, "_planks"))
             return 3;
+        if (endsWith(name, "dirt") || contains(name, "dirt"))
+            return 4;
+        if (endsWith(name, "glass") || contains(name, "glass"))
+            return 5;
         return -1;
     }
 
@@ -424,6 +428,24 @@ void AutoTool::onDisable()
     suppressRightClickBlock = false;
 }
 
+void AutoTool::selectBestWeaponOnce()
+{
+	auto lp = SDK::ClientInstance::get()->getLocalPlayer();
+	if (!lp || !lp->supplies || !lp->supplies->inventory)
+		return;
+
+	// Respect AutoEat: don't swap while eating/using.
+	auto eatBase = Latite::getModuleManager().find("AutoEat");
+	auto eatMod = eatBase ? static_cast<AutoEat*>(eatBase.get()) : nullptr;
+	if (eatMod && eatMod->isActive())
+		return;
+
+	int bestSlot = findBestWeaponSlot(lp->supplies);
+	if (bestSlot != -1 && bestSlot != lp->supplies->selectedSlot) {
+		sendHotbarKey(bestSlot);
+	}
+}
+
 void AutoTool::onTick(Event &)
 {
     auto mcGame = SDK::ClientInstance::get()->minecraftGame;
@@ -459,26 +481,7 @@ void AutoTool::onTick(Event &)
 
     auto eatBase = Latite::getModuleManager().find("AutoEat");
     auto eatMod = eatBase ? static_cast<AutoEat *>(eatBase.get()) : nullptr;
-    bool eatBlocked = false;
-    if (eatMod)
-    {
-        if (eatMod->isUsingItem())
-            eatBlocked = true;
-        else
-        {
-            int eatKey = eatMod->getTriggerKey();
-            if (eatKey != 0)
-            {
-                bool eatDown = Latite::getKeyboard().isKeyDown(eatKey);
-                if (!eatDown)
-                {
-                    eatDown = (GetAsyncKeyState(eatKey) & 0x8000) != 0;
-                }
-                if (eatDown)
-                    eatBlocked = true;
-            }
-        }
-    }
+    bool eatBlocked = eatMod && eatMod->isActive();
 
     auto lp = SDK::ClientInstance::get()->getLocalPlayer();
     if (!lp || !lp->supplies || !lp->supplies->inventory)

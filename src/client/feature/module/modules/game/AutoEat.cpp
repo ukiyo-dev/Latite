@@ -14,7 +14,7 @@
 #include <Windows.h>
 
 namespace {
-	constexpr auto kAutoEatPriorityWindow = std::chrono::milliseconds(100);
+	constexpr auto kAutoEatPriorityWindow = std::chrono::milliseconds(200);
 
 	bool endsWith(std::string const& text, std::string_view suffix) {
 		if (suffix.size() > text.size()) return false;
@@ -190,9 +190,9 @@ void AutoEat::onTick(Event&) {
 		rightDown = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
 	}
     bool autoClickerDown = false;
-    AutoClicker* clickMod = nullptr;
-    if (auto clickBase = Latite::getModuleManager().find("AutoClicker")) {
-            clickMod = static_cast<AutoClicker*>(clickBase.get());
+    {
+            auto clickBase = Latite::getModuleManager().find("AutoClicker");
+            auto clickMod = clickBase ? static_cast<AutoClicker*>(clickBase.get()) : nullptr;
             if (clickMod && clickMod->isEnabled()) {
                     autoClickerDown = leftDown;
             }
@@ -210,9 +210,6 @@ void AutoEat::onTick(Event&) {
 		pendingStart = true;
 		lastSelectedSlot = inv->selectedSlot;
 		ignoreInterruptUntil = now + kAutoEatPriorityWindow;
-		if (clickMod) {
-			clickMod->blockClicksFor(kAutoEatPriorityWindow);
-		}
 	}
 
 	if (now >= ignoreInterruptUntil) {
@@ -253,11 +250,16 @@ void AutoEat::onTick(Event&) {
 		}
 		int useDur = lp->getItemUseDuration();
 		if (useDur > 0) {
-			useActiveSeen = true;
+			if (!useActiveSeen) {
+				useActiveSeen = true;
+				useStart = now;
+			}
 		} else if (useActiveSeen) {
 			stopUsing();
 			clearPending();
 			return;
+		} else {
+			pushRightButton(true);
 		}
 		if (now - useStart >= useDuration) {
 			stopUsing();

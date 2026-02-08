@@ -12,8 +12,7 @@ public:
 	void onDisable() override;
 
 	bool shouldHoldToToggle() override { return false; }
-	[[nodiscard]] bool isUsingItem() const { return isUsing; }
-	[[nodiscard]] int getTriggerKey() const { return std::get<KeyValue>(triggerKey).value; }
+	[[nodiscard]] bool isActive() const { return isUsing || pendingStart; }
 
 private:
 	bool isUsing = false;

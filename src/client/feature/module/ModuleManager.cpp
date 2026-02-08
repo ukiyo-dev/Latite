@@ -98,15 +98,15 @@ ModuleManager::ModuleManager() {
 	this->items.push_back(std::make_shared<TextHotkey>());
 	this->items.push_back(std::make_shared<Freelook>());
 	this->items.push_back(std::make_shared<ComboCounter>());
-        this->items.push_back(std::make_shared<CustomCoordinates>());
-        this->items.push_back(std::make_shared<MovableCoordinates>());
-        this->items.push_back(std::make_shared<AutoGG>());
-        this->items.push_back(std::make_shared<AutoTool>());
-        this->items.push_back(std::make_shared<AutoClicker>());
-        this->items.push_back(std::make_shared<AutoEat>());
-        this->items.push_back(std::make_shared<AutoUse>());
-        this->items.push_back(std::make_shared<AutoAFK>());
-        this->items.push_back(std::make_shared<BlockPlacer>());
+	this->items.push_back(std::make_shared<CustomCoordinates>());
+	this->items.push_back(std::make_shared<MovableCoordinates>());
+	this->items.push_back(std::make_shared<AutoGG>());
+	this->items.push_back(std::make_shared<AutoTool>());
+	this->items.push_back(std::make_shared<AutoClicker>());
+	this->items.push_back(std::make_shared<AutoEat>());
+	this->items.push_back(std::make_shared<AutoUse>());
+	this->items.push_back(std::make_shared<AutoAFK>());
+	this->items.push_back(std::make_shared<BlockPlacer>());
 	this->items.push_back(std::make_shared<FrameTimeDisplay>());
 	this->items.push_back(std::make_shared<BlockGame>());
 

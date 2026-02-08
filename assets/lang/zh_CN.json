@@ -282,16 +282,19 @@
     "client.module.autoClicker.key.desc": "使用此键触发自动点击，设为 None 则使用鼠标左键。",
     "client.module.autoClicker.cps.name": "左键 CPS",
     "client.module.autoClicker.cps.desc": "固定 CPS（无随机）。",
-    "client.module.autoClicker.force.name": "限制模式",
-    "client.module.autoClicker.force.desc": "仅在命中实体或处于宽松窗口时出刀。",
-    "client.module.autoClicker.crit.name": "暴击模式",
-    "client.module.autoClicker.crit.desc": "上升阶段不攻击，其余阶段允许攻击。",
+    "client.module.autoClicker.auto.name": "自动模式",
+    "client.module.autoClicker.auto.desc": "准星对准玩家自动出刀。",
+        "client.module.autoClicker.teams.name": "队伍过滤",
+        "client.module.autoClicker.teams.desc": "根据名字颜色代码跳过队友；大厅内自动禁用攻击。",
     "client.module.autoClicker.pro.name": "高手模式",
     "client.module.autoClicker.pro.desc": "按目标无敌帧节拍出刀，减少无效刀。",
     "client.module.autoClicker.grace.name": "宽松窗口（毫秒）",
     "client.module.autoClicker.grace.desc": "按下按键后的短时间内允许点击，即使未命中目标。",
+    "client.module.autoClicker.smartCrit.name": "暴击模式",
+    "client.module.autoClicker.smartCrit.desc": "上升阶段挥刀后下一刀冷却加倍，鼓励在下落时出手以打出暴击。",
     "client.module.autoTool.name": "自动工具",
-        "client.module.autoTool.rightClickBlock.name": "右键选方块",
+    "client.module.autoTool.desc": "自动选择最佳工具挖掘方块或武器进行战斗。",
+    "client.module.autoTool.rightClickBlock.name": "右键选方块",
     "client.module.autoTool.rightClickBlock.desc": "右键时自动选择优先方块。",
     "client.module.autoAFK.name": "自动挂机",
     "client.module.autoAFK.desc": "开启后持续跳跃。",
@@ -501,9 +504,3 @@
     "client.message.languageSwitchHelper.name": "请重新启动游戏以完全应用语言更改！"
   }
 }
-
-
-
-
-
-

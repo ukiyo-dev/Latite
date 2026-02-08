@@ -13,6 +13,10 @@ public:
     void onEnable() override;
     void onDisable() override;
 
+	// Used by other modules (e.g. AutoClicker auto mode)
+	// to quickly select the best weapon from the hotbar.
+	void selectBestWeaponOnce();
+
     bool shouldHoldToToggle() override { return false; }
 
 private:

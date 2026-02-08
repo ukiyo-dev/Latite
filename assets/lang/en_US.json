@@ -282,15 +282,18 @@
         "client.module.autoClicker.key.desc": "Use this key to trigger AutoClicker. Set to None to use left click.",
         "client.module.autoClicker.cps.name": "CPS",
         "client.module.autoClicker.cps.desc": "Fixed CPS without randomization.",
-        "client.module.autoClicker.force.name": "Restrict mode",
-        "client.module.autoClicker.force.desc": "Only click when an entity is detected, or within the grace window.",
-        "client.module.autoClicker.crit.name": "Crit mode",
-        "client.module.autoClicker.crit.desc": "Skip attacks while rising; allow all other phases.",
+        "client.module.autoClicker.auto.name": "Auto mode",
+        "client.module.autoClicker.auto.desc": "Aim at a player to attack automatically.",
+        "client.module.autoClicker.teams.name": "Team filter",
+        "client.module.autoClicker.teams.desc": "Skip teammates by name color code; auto-disable in lobby.",
         "client.module.autoClicker.pro.name": "Pro mode",
         "client.module.autoClicker.pro.desc": "Gate attacks by target invulnerability timing.",
         "client.module.autoClicker.grace.name": "Grace (ms)",
         "client.module.autoClicker.grace.desc": "Allow clicking briefly after pressing the key, even before a target is hit.",
+        "client.module.autoClicker.smartCrit.name": "Crit mode",
+        "client.module.autoClicker.smartCrit.desc": "Double the click cooldown after swinging while rising, encouraging attacks on the way down for crits.",
         "client.module.autoTool.name": "Auto Tool",
+        "client.module.autoTool.desc": "Automatically select the best tool for mining blocks or weapon for combat.",
                 "client.module.autoTool.rightClickBlock.name": "Right-click block",
         "client.module.autoTool.rightClickBlock.desc": "Select a preferred block on right click.",
         "client.module.autoAFK.name": "Auto AFK",
@@ -501,8 +504,3 @@
         "client.message.languageSwitchHelper.name": "Please restart your game to fully apply language changes!"
     }
 }
-
-
-
-
-
